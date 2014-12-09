@@ -108,9 +108,9 @@ struct ShaderUniforms
 
 	GLint location_Texture;
     GLint location_Mask;
-    GLint location_Night;
 
-	void bindUniforms(glm::mat4& M, glm::mat4& V, glm::mat4& P, glm::vec4& LightSource, glm::vec4& Color,  GLuint TexID, GLuint TexMaskID, float  t)
+    void bindUniforms(glm::mat4& M, glm::mat4& V, glm::mat4& P, glm::vec4& LightSource, glm::vec4& Color, float  t, GLuint TexID, GLuint TexMaskID = 0,
+                      GLuint Tex2ID = 0, std::string Tex2Name = "", GLuint Tex3ID = 0, std::string Tex3Name = "")
 	{		
 		location_Time					= glGetUniformLocation(Shader, "Time");
 		location_MVP					= glGetUniformLocation(Shader, "MVP");
@@ -121,9 +121,6 @@ struct ShaderUniforms
 
         location_Texture = glGetUniformLocation(Shader, "Texture");
         location_Mask = glGetUniformLocation(Shader, "Mask");
- 
-
-
 
 		glm::mat4 MV			= V*M;
 		glm::mat4 MVP			= P*MV;
@@ -138,13 +135,29 @@ struct ShaderUniforms
         glUniform1f(location_Time, 10 * t);
 
         glUniform1i(location_Texture, 0);
-        glUniform1i(location_Mask, 1);
-
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, TexID);
 
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, TexMaskID);
+        if (TexMaskID != 0)
+        {
+            glUniform1i(location_Mask, 1);
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, TexMaskID);
+        }
+
+        if (Tex2ID != 0)
+        {
+            glUniform1i(glGetUniformLocation(Shader, Tex2Name.c_str()), 2);
+            glActiveTexture(GL_TEXTURE2);
+            glBindTexture(GL_TEXTURE_2D, Tex2ID);
+        }
+
+        if (Tex3ID != 0)
+        {
+            glUniform1i(glGetUniformLocation(Shader, Tex3Name.c_str()), 3);
+            glActiveTexture(GL_TEXTURE3);
+            glBindTexture(GL_TEXTURE_2D, Tex3ID);
+        }
 	}
 
 };
@@ -656,16 +669,13 @@ void display()
     // bind Shader & bind Uniforms
     glUseProgram(SunShader.Shader);
     M = glm::mat4(1.0f) * glm::rotate(90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-    SunShader.bindUniforms(M, V, P, lightSource, sunColor, 0, 0, t);
+    SunShader.bindUniforms(M, V, P, lightSource, sunColor, t, 0, 0);
     glutSolidSphere(sunRadius, sunSlices, sunStacks);
 
-	// glUseProgram(BumpShader.Shader);
-
     glUseProgram(TexturePhongShader.Shader);
-    // ***********************************************************************************
     // background
     M = glm::mat4(1.0f);
-    TexturePhongShader.bindUniforms(M, V, P, lightSource, backgroundColor, backgroundTex, blackMaskTex, t);
+    TexturePhongShader.bindUniforms(M, V, P, lightSource, backgroundColor, t, backgroundTex, blackMaskTex);
     glBindVertexArray(geometryCube.vao);
     glDrawElements(GL_QUADS, geometryCube.numIndices, GL_UNSIGNED_SHORT, (void*)0);
     glBindVertexArray(0);
@@ -673,28 +683,30 @@ void display()
     // sphere
     glBindVertexArray(geometrySphere.vao);
 
+    glUseProgram(BumpShader.Shader);
     // earth
     M = glm::rotate(earthDegree * t, glm::vec3(0.0f, 1.0f, 0.0f))
         * glm::translate(glm::vec3(50.0f + earthRadius, 0.0f, 0.0f))
         * glm::scale(glm::vec3(earthRadius))
         * glm::rotate(earthDegree * t, glm::vec3(0.0f, 1.0f, 0.0f));
-    TexturePhongShader.bindUniforms(M, V, P, lightSource, planetColor, earthTex, earthMaskTex, t);
+    TexturePhongShader.bindUniforms(M, V, P, lightSource, planetColor, t, earthTex, earthMaskTex, earthTex_night, "Texture_Night");
     glDrawElements(GL_TRIANGLES, geometrySphere.numIndices, GL_UNSIGNED_SHORT, (void*)0);
 
+    glUseProgram(TexturePhongShader.Shader);
     // moon
     M = glm::rotate(earthDegree * t, glm::vec3(0.0f, 1.0f, 0.0f))
         * glm::translate(glm::vec3(50.0f + earthRadius, 0.0f, 0.0f))
         * glm::rotate(moonDegree * t, glm::vec3(0.0f, 0.0f, 1.0f))
         * glm::translate(glm::vec3(20.0f, 0.0f, 0.0f))
         * glm::scale(glm::vec3(moonRadius));
-    TexturePhongShader.bindUniforms(M, V, P, lightSource, planetColor, moonTex, blackMaskTex, t);
+    TexturePhongShader.bindUniforms(M, V, P, lightSource, planetColor, t, moonTex, blackMaskTex);
     glDrawElements(GL_TRIANGLES, geometrySphere.numIndices, GL_UNSIGNED_SHORT, (void*)0);
 
     // saturn
     M = glm::rotate(saturnDegree * t, glm::vec3(0.0f, 1.0f, 0.0f))
         * glm::translate(glm::vec3(100.0f + saturnRadius, 0.0f, 0.0f))
         * glm::scale(glm::vec3(saturnRadius));
-    TexturePhongShader.bindUniforms(M, V, P, lightSource, planetColor, saturnTex, blackMaskTex, t);
+    TexturePhongShader.bindUniforms(M, V, P, lightSource, planetColor, t, saturnTex, blackMaskTex);
     glDrawElements(GL_TRIANGLES, geometrySphere.numIndices, GL_UNSIGNED_SHORT, (void*)0);
 
     // unbind sphere
@@ -709,19 +721,18 @@ void display()
     for (int i = 0; i < numberOfRings; i++)
     {
         M = M * glm::scale(glm::vec3(1.0f + distanceBetweenRings));
-        TexturePhongShader.bindUniforms(M, V, P, lightSource, ringsColor, 0, 0, t);
+        TexturePhongShader.bindUniforms(M, V, P, lightSource, ringsColor, t, 0, 0);
         glDrawElements(GL_LINE_LOOP, geometryRings.numIndices, GL_UNSIGNED_SHORT, (void*)0);
     }
     glBindVertexArray(0);
-    // ***********************************************************************************
 
-    // TODO: Add space shuttle
+    // space shuttle
     M = glm::rotate(saturnDegree * -t, glm::vec3(0.0f, 0.0f, 1.0f))
         * glm::rotate(180.0f, glm::vec3(0.0f, 1.0f, 0.0f))
         * glm::rotate(180.0f, glm::vec3(1.0f, 0.0f, 0.0f))
         * glm::translate(glm::vec3(100.0f + saturnRadius, 0.0f, 0.0f))
         * glm::rotate(90.0f, glm::vec3(0.0f, 0.0f, 1.0f));
-    TexturePhongShader.bindUniforms(M, V, P, lightSource, shuttleColor, 0, blackMaskTex, t);
+    TexturePhongShader.bindUniforms(M, V, P, lightSource, shuttleColor, t, 0, blackMaskTex);
     glBindVertexArray(geometryShuttle.vao);
     glDrawElements(GL_TRIANGLES, geometryShuttle.numIndices, GL_UNSIGNED_SHORT, (void*)0);
     glBindVertexArray(0);

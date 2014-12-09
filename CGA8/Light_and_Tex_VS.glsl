@@ -1,5 +1,7 @@
-#version 330
+// Arkadiusz Gabrys qe83mepi
+// Agnieszka Zacher by57zeja
 
+#version 330
  
 layout(location = 0) in vec4 vPosition;
 layout(location = 1) in vec4 vNormal;
@@ -14,7 +16,6 @@ uniform vec4 LightSource;  // updated each draw call
 varying vec3 N;
 varying vec4 V;
 varying vec2 TexCoord;
-
 
 void main() { 
 
