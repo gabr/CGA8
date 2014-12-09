@@ -1,3 +1,5 @@
+// Arkadiusz Gabrys qe83mepi
+// Agnieszka Zacher by57zeja
 
 #include "camera.h"
 #include "offLoader.h"
