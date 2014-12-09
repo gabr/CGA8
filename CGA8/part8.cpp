@@ -689,7 +689,7 @@ void display()
         * glm::translate(glm::vec3(50.0f + earthRadius, 0.0f, 0.0f))
         * glm::scale(glm::vec3(earthRadius))
         * glm::rotate(earthDegree * t, glm::vec3(0.0f, 1.0f, 0.0f));
-    TexturePhongShader.bindUniforms(M, V, P, lightSource, planetColor, t, earthTex, earthMaskTex, earthTex_night, "Texture_Night");
+    BumpShader.bindUniforms(M, V, P, lightSource, planetColor, t, earthTex, earthMaskTex, earthTex_night, "Texture_Night");
     glDrawElements(GL_TRIANGLES, geometrySphere.numIndices, GL_UNSIGNED_SHORT, (void*)0);
 
     glUseProgram(TexturePhongShader.Shader);

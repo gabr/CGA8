@@ -27,14 +27,19 @@ void main() {
     // ambient from texture
     vec4 ambient = texture2D(Texture, TexCoord);
     vec4 mask = texture2D(Mask, TexCoord);
+    vec4 night = texture2D(Texture_Night, TexCoord);
 
     // diff
+    vec4 diff;
     float dotPr = dot(N, L);
     if (dotPr < 0.0)
     {
-        dotPr = 0.0;
+        diff = night * -dotPr * 0.8;
     }
-    vec4 diff = ambient * dotPr;
+    else
+    {
+        diff = ambient * dotPr;
+    }
 
     // spec
     float s = 10;
