@@ -7,21 +7,17 @@ uniform vec4 Color;  // updated each draw call
 uniform sampler2D Texture;
 uniform sampler2D Mask;
 uniform sampler2D Texture_Night;
-//uniform sampler2D Texture_Normal;
+uniform sampler2D Texture_Normal;
 
 in vec3 V;
-//in vec3 L; 
-in vec3 N;
+in vec3 L;
 in vec2 TexCoord;
 
 uniform vec4 LightSource;  // updated each draw call
  
 void main() {
-	// textures affect diffuse lighting only
-	// only water should produce specular hightlights
 
-    vec3 L = normalize(LightSource.xyz - V);
-    vec3 E = normalize(V);
+    vec3 N = normalize(texture2D(Texture_Normal, TexCoord).rgb * 2.0 - 1.0);
     vec3 R = reflect(L, N);
 
     // ambient from texture
@@ -43,7 +39,7 @@ void main() {
 
     // spec
     float s = 10;
-    dotPr = dot(E, R);
+    dotPr = dot(V, R);
     if (dotPr < 0.0)
     {
         dotPr = 0.0;

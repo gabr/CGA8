@@ -316,8 +316,8 @@ void createRings()
 void createSphereWithTangents()
 {
 	float r=1;
-	int slices = 25;
-	int stacks = 50;
+	int slices = planetSlices;
+	int stacks = planetStacks;
 	
 	float dTheta = 2.0*PI/(float)stacks;
 	float dPhi = PI/(float)slices;  
@@ -689,7 +689,7 @@ void display()
         * glm::translate(glm::vec3(50.0f + earthRadius, 0.0f, 0.0f))
         * glm::scale(glm::vec3(earthRadius))
         * glm::rotate(earthDegree * t, glm::vec3(0.0f, 1.0f, 0.0f));
-    BumpShader.bindUniforms(M, V, P, lightSource, planetColor, t, earthTex, earthMaskTex, earthTex_night, "Texture_Night");
+    BumpShader.bindUniforms(M, V, P, lightSource, planetColor, t, earthTex, earthMaskTex, earthTex_night, "Texture_Night", earthTex_normal, "Texture_Normal");
     glDrawElements(GL_TRIANGLES, geometrySphere.numIndices, GL_UNSIGNED_SHORT, (void*)0);
 
     glUseProgram(TexturePhongShader.Shader);
